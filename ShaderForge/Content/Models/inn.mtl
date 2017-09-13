@@ -1,0 +1,10 @@
+# MagicaVoxel @ ephtracy
+
+newmtl palette
+illum 1
+Ka 0.000 0.000 0.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+map_Kd Textures/inn.png
+map_Bump Textures/inn.png
+map_Ks Textures/inn.png

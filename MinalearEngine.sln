@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinalearEngine", "MinalearEngine\MinalearEngine.csproj", "{06F0D542-E829-4904-B805-15E5D418DE9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShaderForge", "ShaderForge\ShaderForge.csproj", "{D3331308-AC21-46A4-A1F2-46ACAE2251AC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06F0D542-E829-4904-B805-15E5D418DE9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06F0D542-E829-4904-B805-15E5D418DE9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06F0D542-E829-4904-B805-15E5D418DE9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06F0D542-E829-4904-B805-15E5D418DE9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3331308-AC21-46A4-A1F2-46ACAE2251AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3331308-AC21-46A4-A1F2-46ACAE2251AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3331308-AC21-46A4-A1F2-46ACAE2251AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3331308-AC21-46A4-A1F2-46ACAE2251AC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
