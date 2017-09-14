@@ -23,16 +23,17 @@ namespace ShaderForge
             sprite = content.LoadTexture2D("Textures/sample_sprite.png");
             shader = content.LoadShaderProgram("Shaders/sprite_vert.glsl", "Shaders/sprite_frag.glsl");
 
-            float size = 16f / 32f;
+            //float size = 16f / 32f;
+            float size = 1f;
             float[] buffer = new float[] {
             //   X   Y   Z   uv  X   Y
-                0f, 1f, 0f,     0f, 0f,
-                0f, 0f, 0f,     0f, 1f,
-                1f, 1f, 0f,     size, 0f,
+                0f, 0f, 0f,     0f, 0f,
+                0f, 1f, 0f,     0f, 1f,
+                1f, 0f, 0f,     size, 0f,
 
-                1f, 1f, 0f,     size, 0f,
-                0f, 0f, 0f,     0f, 1f,
-                1f, 0f, 0f,     size, 1f,
+                1f, 0f, 0f,     size, 0f,
+                0f, 1f, 0f,     0f, 1f,
+                1f, 1f, 0f,     size, 1f,
             };
 
             vao = GL.GenVertexArray();
@@ -59,7 +60,7 @@ namespace ShaderForge
 
         public void Draw(GameTime gameTime, Vector3 cameraPos)
         {
-            Matrix4 camera = Matrix4.LookAt(cameraPos, cameraPos + new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
+            /*Matrix4 camera = Matrix4.LookAt(cameraPos, cameraPos + new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
             Matrix4 model =
                 Matrix4.CreateScale(new Vector3(4f, 4f, 1f)) *
                 Matrix4.CreateTranslation(new Vector3(cameraPos.X, 1f, 27f));
@@ -75,7 +76,9 @@ namespace ShaderForge
 
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
-            GL.BindVertexArray(0);
+            GL.BindVertexArray(0);*/
+
+            //TestDraw(sprite.ID);
         }
         public void Update(GameTime gameTime)
         {
@@ -85,6 +88,25 @@ namespace ShaderForge
                 index = (index == 1) ? 0 : 1;
                 timer = 0f;
             }
+        }
+
+        public void TestDraw(int text)
+        {
+            Matrix4 proj = Matrix4.CreateOrthographicOffCenter(0f, 1280f, 720f, 0f, -1f, 1f);
+            Matrix4 model = Matrix4.CreateScale(new Vector3(256f, 256f, 1f)) * Matrix4.CreateTranslation(10f, 10f, 0f);
+
+            shader.Use();
+            shader.SetMatrix4("proj", false, proj);
+            shader.SetMatrix4("view", false, Matrix4.Identity);
+            shader.SetMatrix4("model", false, model);
+            shader.SetVector2("uvOffset", Vector2.Zero);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, text);
+
+            GL.BindVertexArray(vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+            GL.BindVertexArray(0);
         }
     }
 }

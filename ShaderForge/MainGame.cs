@@ -22,9 +22,14 @@ namespace ShaderForge
         {
             GL.ClearColor(Color4.SkyBlue);
             GL.Enable(EnableCap.DepthTest);
+            //GL.Enable(EnableCap.Multisample);
+            //GL.Enable(EnableCap.FramebufferSrgb); //Gamma Correction
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
         }
         public override void LoadContent()
         {
@@ -37,7 +42,7 @@ namespace ShaderForge
 
             spriteRenderer = new SpriteRenderer(content);
 
-            camera = new Vector3(-50f, 10f, 50f);
+            camera = new Vector3(-10f, 10f, 50f);
         }
 
         public override void Draw(GameTime gameTime)
@@ -45,7 +50,9 @@ namespace ShaderForge
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             
             sceneRenderer.Draw(gameTime, camera);
+
             spriteRenderer.Draw(gameTime, camera);
+            spriteRenderer.TestDraw(sceneRenderer.depthMapTexture);
 
             Window.SwapBuffers();
         }
