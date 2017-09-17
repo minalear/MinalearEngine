@@ -17,7 +17,7 @@ namespace Minalear.Engine.Content.ModelLoader
 
         public override string ToString()
         {
-            return string.Format("g ( Material: {0}, Face Count: {1} )", MaterialName, Faces.Count);
+            return string.Format("g ( {0} Material: {1}, Face Count: {2} )", Name, MaterialName, Faces.Count);
         }
     }
 }

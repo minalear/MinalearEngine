@@ -150,7 +150,7 @@ namespace Minalear.Engine.Content.ModelLoader
 
                     //Texture Coordinate
                     buffer.Add(TexCoord.X);
-                    buffer.Add(TexCoord.Y);
+                    buffer.Add(1.0f - TexCoord.Y);
 
                     //Normal
                     buffer.Add(Normal.X);

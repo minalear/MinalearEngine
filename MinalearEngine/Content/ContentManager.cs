@@ -30,12 +30,10 @@ namespace Minalear.Engine.Content
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
             //Set wrapping and filter modes
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
-            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             //Create our new texture
             Texture2D texture = new Texture2D(textureID, bitmap.Width, bitmap.Height);
@@ -79,6 +77,52 @@ namespace Minalear.Engine.Content
             GL.DeleteShader(vertexShaderID);
             GL.DeleteShader(fragmentShaderID);
             
+            return new ShaderProgram(programID);
+        }
+        public ShaderProgram LoadShaderProgram(string vertex, string geometry, string fragment)
+        {
+            vertex = checkValidPath(vertex);
+            geometry = checkValidPath(geometry);
+            fragment = checkValidPath(fragment);
+
+            //Vertex Shader
+            int vertexShaderID = GL.CreateShader(ShaderType.VertexShader);
+            string vertexShaderSource = readAllText(vertex);
+            GL.ShaderSource(vertexShaderID, vertexShaderSource);
+            GL.CompileShader(vertexShaderID);
+            checkShaderCompilationStatus(vertexShaderID, ShaderType.VertexShader);
+
+            //Geometry Shader
+            int geometryShaderID = GL.CreateShader(ShaderType.GeometryShader);
+            string geometryShaderSource = readAllText(geometry);
+            GL.ShaderSource(geometryShaderID, geometryShaderSource);
+            GL.CompileShader(geometryShaderID);
+            checkShaderCompilationStatus(geometryShaderID, ShaderType.GeometryShader);
+
+            //Fragment Shader
+            int fragmentShaderID = GL.CreateShader(ShaderType.FragmentShader);
+            string fragmentShaderSource = readAllText(fragment);
+            GL.ShaderSource(fragmentShaderID, fragmentShaderSource);
+            GL.CompileShader(fragmentShaderID);
+            checkShaderCompilationStatus(fragmentShaderID, ShaderType.FragmentShader);
+
+            //Create shader program
+            int programID = GL.CreateProgram();
+
+            //Attach shaders to the program and link
+            GL.AttachShader(programID, vertexShaderID);
+            GL.AttachShader(programID, geometryShaderID);
+            GL.AttachShader(programID, fragmentShaderID);
+            GL.LinkProgram(programID);
+
+            //Detach and clean up the shaders
+            GL.DetachShader(programID, vertexShaderID);
+            GL.DetachShader(programID, geometryShaderID);
+            GL.DetachShader(programID, fragmentShaderID);
+            GL.DeleteShader(vertexShaderID);
+            GL.DeleteShader(geometryShaderID);
+            GL.DeleteShader(fragmentShaderID);
+
             return new ShaderProgram(programID);
         }
         public Model LoadObjModel(string path)

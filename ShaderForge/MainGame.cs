@@ -37,7 +37,7 @@ namespace ShaderForge
             content.ContentDirectory = "Content/";
 
             sceneRenderer = new SceneRenderer();
-            sceneRenderer.AttachModel(content.LoadObjModel("Models/town.obj"));
+            sceneRenderer.AttachModel(content.LoadObjModel("Models/temple.obj"));
             sceneRenderer.CompileScene(content);
 
             spriteRenderer = new SpriteRenderer(content);

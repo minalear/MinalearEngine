@@ -80,6 +80,7 @@
     <Compile Include="Content\ModelLoader\Vertex.cs" />
     <Compile Include="Content\ShaderCompilationException.cs" />
     <Compile Include="Content\Vertex.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GameTime.cs" />
     <Compile Include="IRenderable.cs" />

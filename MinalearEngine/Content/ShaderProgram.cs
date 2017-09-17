@@ -40,6 +40,12 @@ namespace Minalear.Engine.Content
             GL.UniformMatrix4(GetUniformLocation(name), transpose, ref value);
         }
 
+        public void SetMatrix4Array(string name, bool transpose, Matrix4[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+                SetMatrix4(string.Format("{0}[{1}]", name, i), transpose, values[i]);
+        }
+
         public int GetUniformLocation(string name)
         {
             if (uniformLocations.ContainsKey(name))

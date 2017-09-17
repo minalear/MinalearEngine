@@ -53,7 +53,8 @@ namespace Minalear.Engine
             gameTime.ElapsedTime = TimeSpan.FromSeconds(e.Time);
             gameTime.TotalTime.Add(TimeSpan.FromSeconds(e.Time));
 
-            Update(gameTime);
+            if (Window.Focused)
+                Update(gameTime);
         }
 
         //Properties
