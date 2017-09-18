@@ -137,26 +137,64 @@ namespace Minalear.Engine.Content.ModelLoader
             //Assuming triangles - POS/TEX/NORMAL
             foreach (Face face in group.Faces)
             {
-                foreach (Vertex vertex in face.Vertices)
-                {
-                    Vector3 Position = vertexList[vertex.VertexIndex];
-                    Vector2 TexCoord = texCoordList[vertex.TextureIndex];
-                    Vector3 Normal = normalList[vertex.NormalIndex];
+                Vector3 pos1 = vertexList[face.Vertices[0].VertexIndex];
+                Vector3 pos2 = vertexList[face.Vertices[1].VertexIndex];
+                Vector3 pos3 = vertexList[face.Vertices[2].VertexIndex];
 
-                    //Position
-                    buffer.Add(Position.X);
-                    buffer.Add(Position.Y);
-                    buffer.Add(Position.Z);
+                Vector2 uv1 = texCoordList[face.Vertices[0].TextureIndex];
+                Vector2 uv2 = texCoordList[face.Vertices[1].TextureIndex];
+                Vector2 uv3 = texCoordList[face.Vertices[2].TextureIndex];
 
-                    //Texture Coordinate
-                    buffer.Add(TexCoord.X);
-                    buffer.Add(1.0f - TexCoord.Y);
+                Vector3 n1 = normalList[face.Vertices[0].NormalIndex];
+                Vector3 n2 = normalList[face.Vertices[1].NormalIndex];
+                Vector3 n3 = normalList[face.Vertices[2].NormalIndex];
 
-                    //Normal
-                    buffer.Add(Normal.X);
-                    buffer.Add(Normal.Y);
-                    buffer.Add(Normal.Z);
-                }
+                Vector3 edge1 = pos2 - pos1;
+                Vector3 edge2 = pos3 - pos1;
+                Vector2 deltaUV1 = uv2 - uv1;
+                Vector2 deltaUV2 = uv3 - uv1;
+
+                float f = 1.0f / (deltaUV1.X * deltaUV2.Y - deltaUV2.X * deltaUV1.Y);
+
+                Vector3 tangent;
+                tangent.X = f * (deltaUV2.Y * edge1.X - deltaUV1.Y * edge2.X);
+                tangent.Y = f * (deltaUV2.Y * edge1.Y - deltaUV1.Y * edge2.Y);
+                tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
+
+                if (tangent.LengthSquared > 0f)
+                    tangent.Normalize();
+
+                Vector3 bitangent;
+                bitangent.X = f * (-deltaUV2.X * edge1.X + deltaUV1.X * edge2.X);
+                bitangent.Y = f * (-deltaUV2.X * edge1.Y + deltaUV1.X * edge2.Y);
+                bitangent.Z = f * (-deltaUV2.X * edge1.Z + deltaUV1.X * edge2.Z);
+
+                if (bitangent.LengthSquared > 0f)
+                    bitangent.Normalize();
+
+                //Vertex 1
+                buffer.AddRange(pos1.ToArray());
+                buffer.Add(uv1.X);
+                buffer.Add(1.0f - uv1.Y);
+                buffer.AddRange(n1.ToArray());
+                buffer.AddRange(tangent.ToArray());
+                buffer.AddRange(bitangent.ToArray());
+
+                //Vertex 2
+                buffer.AddRange(pos2.ToArray());
+                buffer.Add(uv2.X);
+                buffer.Add(1.0f - uv2.Y);
+                buffer.AddRange(n2.ToArray());
+                buffer.AddRange(tangent.ToArray());
+                buffer.AddRange(bitangent.ToArray());
+
+                //Vertex 3
+                buffer.AddRange(pos3.ToArray());
+                buffer.Add(uv3.X);
+                buffer.Add(1.0f - uv3.Y);
+                buffer.AddRange(n3.ToArray());
+                buffer.AddRange(tangent.ToArray());
+                buffer.AddRange(bitangent.ToArray());
             }
 
             return buffer.ToArray();

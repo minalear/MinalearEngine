@@ -10,19 +10,19 @@ namespace DeferredRendering
 {
     public class SceneRenderer
     {
-        public Vector3 LightPosition;
-        
         private List<Model> models;
+        private Light light;
 
         private int vao, fbo;
         private ShaderProgram coreShader, shadowShader;
-        private int[] renderTargets;
-        private Matrix4[] views;
 
         private UIRenderer uiRenderer;
-        private const int SHADOW_SIZE = 1024;
+        private SkyboxRenderer skyRenderer;
+        
+        private float farPlane = 10f;
 
-        private int view = 3;
+        private const int SHADOW_SIZE = 4096;
+        private const int VERTEX_SIZE = 14;
 
         public SceneRenderer()
         {
@@ -31,25 +31,21 @@ namespace DeferredRendering
 
         public void Draw(GameTime gameTime, Camera camera)
         {
-            views = new Matrix4[] {
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f)),
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(-1f, 0f, 0f), new Vector3(0f, 1f, 0f)),
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f)),
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(0f, -1f, 0f), new Vector3(0f, 0f, -1f)),
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(0f, 0f, 1f), new Vector3(0f, 1f, 0f)),
-                Matrix4.LookAt(LightPosition, LightPosition + new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f)),
-            };
-
             renderShadowScene(camera);
             renderCoreScene(camera);
 
-            uiRenderer.DrawTexture(renderTargets[view], new Vector2(10f, 10f), new Vector2(128f));
-            uiRenderer.DrawTexture(renderTargets[view + 1], new Vector2(10f, 148f), new Vector2(128f));
+            /*GL.DepthFunc(DepthFunction.Lequal);
+            skyRenderer.RenderCubeMap(cubeMap, camera);
+            GL.DepthFunc(DepthFunction.Less);*/
         }
 
         public void AttachModel(Model model)
         {
             models.Add(model);
+        }
+        public void AttachLight(Light light)
+        {
+            this.light = light;
         }
         public void CompileScene(ContentManager content)
         {
@@ -65,37 +61,47 @@ namespace DeferredRendering
             GL.EnableVertexAttribArray(0); //Pos
             GL.EnableVertexAttribArray(1); //UV
             GL.EnableVertexAttribArray(2); //Normal
+            GL.EnableVertexAttribArray(3); //Tangent
+            GL.EnableVertexAttribArray(4); //Bitangent
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, VERTEX_SIZE * sizeof(float), 0);
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, VERTEX_SIZE * sizeof(float), 3 * sizeof(float));
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, VERTEX_SIZE * sizeof(float), 5 * sizeof(float));
+            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, VERTEX_SIZE * sizeof(float), 8 * sizeof(float));
+            GL.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, VERTEX_SIZE * sizeof(float), 11 * sizeof(float));
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
 
             setupShader(content);
             setupFBO();
+            setupLights();
 
             uiRenderer = new UIRenderer(content);
+            skyRenderer = new SkyboxRenderer(content);
         }
 
         public void renderShadowScene(Camera camera)
         {
-            GL.Viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-            
+            Matrix4 model = Matrix4.CreateRotationY(MathHelper.PiOver2);
+            Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1.0f, 1f, farPlane);
+
             GL.BindVertexArray(vao);
 
-            Matrix4 model = Matrix4.CreateRotationY(MathHelper.PiOver2);
-            Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 1f, 25f);
+            GL.Viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
 
             shadowShader.Use();
             shadowShader.SetMatrix4("model", false, model);
             shadowShader.SetMatrix4("proj", false, proj);
+            shadowShader.SetFloat("farPlane", farPlane);
+
+            Matrix4[] views = getViewData(light.Position);
+            shadowShader.SetVector3("lightPosition", light.Position);
 
             for (int i = 0; i < 6; i++)
             {
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTargets[i], 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.TextureCubeMapPositiveX + i, light.ShadowMap, 0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
                 shadowShader.SetMatrix4("view", false, views[i]);
 
@@ -104,7 +110,7 @@ namespace DeferredRendering
                 {
                     foreach (Mesh mesh in sceneObj.Meshes)
                     {
-                        int vertexCount = mesh.VertexData.Length / 8;
+                        int vertexCount = mesh.VertexData.Length / VERTEX_SIZE;
                         GL.DrawArrays(PrimitiveType.Triangles, index, vertexCount);
                         index += vertexCount;
                     }
@@ -122,19 +128,19 @@ namespace DeferredRendering
             GL.BindVertexArray(vao);
 
             Matrix4 model = Matrix4.CreateRotationY(MathHelper.PiOver2);
-            Matrix4 lightSpace = views[view] * Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 1f, 25f);
 
             coreShader.Use();
             coreShader.SetMatrix4("model", false, model);
             coreShader.SetMatrix4("view", false, camera.View);
             coreShader.SetMatrix4("proj", false, camera.Projection);
 
-            coreShader.SetVector3("lightPosition", LightPosition);
             coreShader.SetVector3("cameraPosition", camera.Position);
-            coreShader.SetMatrix4("lightSpaceMatrix", false, lightSpace);
+            coreShader.SetFloat("farPlane", farPlane);
 
-            GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2D, renderTargets[view]);
+            coreShader.SetVector3("lightPosition", light.Position);
+
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.TextureCubeMap, light.ShadowMap);
 
             int index = 0;
             foreach (Model sceneObj in models)
@@ -144,12 +150,18 @@ namespace DeferredRendering
                     GL.ActiveTexture(TextureUnit.Texture0);
                     mesh.Material.DiffuseMap.Bind();
 
-                    int vertexCount = mesh.VertexData.Length / 8;
+                    GL.ActiveTexture(TextureUnit.Texture1);
+                    mesh.Material.NormalMap.Bind();
+
+                    GL.ActiveTexture(TextureUnit.Texture2);
+                    mesh.Material.SpecularMap.Bind();
+
+                    int vertexCount = mesh.VertexData.Length / VERTEX_SIZE;
                     GL.DrawArrays(PrimitiveType.Triangles, index, vertexCount);
                     index += vertexCount;
                 }
             }
-
+            
             GL.BindVertexArray(0);
         }
 
@@ -159,6 +171,38 @@ namespace DeferredRendering
             foreach (Model model in models)
                 buffer.AddRange(model.GetVertexData());
             return buffer.ToArray();
+        }
+        private Matrix4[] getViewData(Vector3 position)
+        {
+            return new Matrix4[] {
+                Matrix4.LookAt(position, position + new Vector3(1f, 0f, 0f), new Vector3(0f, -1f, 0f)),
+                Matrix4.LookAt(position, position + new Vector3(-1f, 0f, 0f), new Vector3(0f, -1f, 0f)),
+                Matrix4.LookAt(position, position + new Vector3(0f, 1f, 0f), new Vector3(0f, 0f, 1f)),
+                Matrix4.LookAt(position, position + new Vector3(0f, -1f, 0f), new Vector3(0f, 0f, -1f)),
+                Matrix4.LookAt(position, position + new Vector3(0f, 0f, 1f), new Vector3(0f, -1f, 0f)),
+                Matrix4.LookAt(position, position + new Vector3(0f, 0f, -1f), new Vector3(0f, -1f, 0f)),
+            };
+        }
+
+        private void setupLights()
+        {
+            int shadowMap = GL.GenTexture();
+            GL.BindTexture(TextureTarget.TextureCubeMap, shadowMap);
+
+            for (int face = 0; face < 6; face++)
+            {
+                GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX + face, 0, PixelInternalFormat.DepthComponent,
+                    SHADOW_SIZE, SHADOW_SIZE, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+            }
+
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.ClampToEdge);
+
+            GL.BindTexture(TextureTarget.TextureCubeMap, 0);
+            light.ShadowMap = shadowMap;
         }
         private void setupShader(ContentManager content)
         {
@@ -170,30 +214,16 @@ namespace DeferredRendering
             coreShader.SetMatrix4("proj", false, Matrix4.Identity);
 
             coreShader.SetInt("diffuseMap", 0);
-            coreShader.SetInt("shadowMap", 1);
+            coreShader.SetInt("normalMap", 1);
+            coreShader.SetInt("specularMap", 2);
+            coreShader.SetInt("shadowMap", 3);
 
             shadowShader = content.LoadShaderProgram("Shaders/shadow_vert.glsl", "Shaders/shadow_frag.glsl");
         }
         private void setupFBO()
         {
             fbo = GL.GenFramebuffer();
-
-            renderTargets = new int[6];
-            for (int i = 0; i < renderTargets.Length; i++)
-            {
-                renderTargets[i] = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, renderTargets[i]);
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, SHADOW_SIZE, SHADOW_SIZE, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-
-                GL.BindTexture(TextureTarget.Texture2D, 0);
-            }
-
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-            //GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget, 0);
             GL.DrawBuffer(DrawBufferMode.None);
             GL.ReadBuffer(ReadBufferMode.None);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

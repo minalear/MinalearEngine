@@ -76,7 +76,7 @@
     <Compile Include="Content\ModelLoader\LineParsers\VertexLineParser.cs" />
     <Compile Include="Content\MaterialLoader\MaterialLibrary.cs" />
     <Compile Include="Content\ModelLoader\ModelLoader.cs" />
-    <Compile Include="Content\StringExtensions.cs" />
+    <Compile Include="Content\Extensions.cs" />
     <Compile Include="Content\ModelLoader\Vertex.cs" />
     <Compile Include="Content\ShaderCompilationException.cs" />
     <Compile Include="Content\Vertex.cs" />

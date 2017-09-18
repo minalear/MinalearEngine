@@ -26,7 +26,8 @@ namespace DeferredRendering
             var kState = Keyboard.GetState();
 
             Vector3 moveMod = Vector3.Zero;
-            float moveSpeed = 10f * gameTime.Delta;
+            float moveSpeed = (kState.IsKeyDown(Key.ShiftLeft)) ? 1f : 10f;
+            moveSpeed *= gameTime.Delta; 
 
             if (kState.IsKeyDown(Key.A))
                 moveMod.X = -moveSpeed;

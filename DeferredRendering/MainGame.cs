@@ -16,28 +16,19 @@ namespace DeferredRendering
         private Camera camera;
         private SceneRenderer scene;
 
-        public MainGame() : base("Deffered Rendering Testing", 1280, 720)
-        {
-            Window.KeyUp += (sender, e) =>
-            {
-                if (e.Key == Key.Space)
-                    scene.LightPosition = camera.Position;
-            };
-        }
+        public MainGame() : base("Deffered Rendering Testing", 1280, 720) { }
 
         public override void Initialize()
         {
             GL.ClearColor(Color4.LightSkyBlue);
             GL.Enable(EnableCap.DepthTest);
-            //GL.DepthFunc(DepthFunction.Lequal);
 
             //GL.Enable(EnableCap.Blend);
             //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-
-            //camera = new Camera(new Vector3(9f, 1f, -10f), Vector3.Zero);
+            
             camera = new Camera(new Vector3(0f, 10f, -16f), new Vector3(-0.588f, 0.009f, 0f));
         }
         public override void LoadContent()
@@ -47,6 +38,7 @@ namespace DeferredRendering
             
             scene = new SceneRenderer();
             scene.AttachModel(content.LoadObjModel("Models/dungeon.obj"));
+            scene.AttachLight(new Light(Color4.White, new Vector3(-6f, 2f, -3f)));
             scene.CompileScene(content);
         }
 
