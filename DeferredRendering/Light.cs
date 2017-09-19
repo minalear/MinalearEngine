@@ -9,6 +9,7 @@ namespace DeferredRendering
     {
         protected Color4 color;
         protected int shadowMap;
+        protected int renderMap;
 
         public Light(Color4 color, Vector3 position)
             : base(position)
@@ -25,6 +26,11 @@ namespace DeferredRendering
         {
             get { return shadowMap; }
             set { shadowMap = value; }
+        }
+        public int RenderMap
+        {
+            get { return renderMap; }
+            set { renderMap = value; }
         }
     }
 }

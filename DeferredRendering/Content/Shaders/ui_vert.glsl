@@ -8,6 +8,6 @@ uniform mat4 view;
 
 void main()
 {
-	UV = position;
+	UV = vec2(position.x, 1.0 - position.y);
 	gl_Position = view * model * vec4(position, 0, 1);
 }

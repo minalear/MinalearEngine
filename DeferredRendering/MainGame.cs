@@ -16,7 +16,14 @@ namespace DeferredRendering
         private Camera camera;
         private SceneRenderer scene;
 
-        public MainGame() : base("Deffered Rendering Testing", 1280, 720) { }
+        public MainGame() : base("Deffered Rendering Testing", 1280, 720)
+        {
+            Window.KeyUp += (sender, e) =>
+            {
+                //if (e.Key == Key.Space)
+                //    scene.light.Position = camera.Position;
+            };
+        }
 
         public override void Initialize()
         {
@@ -39,6 +46,7 @@ namespace DeferredRendering
             scene = new SceneRenderer();
             scene.AttachModel(content.LoadObjModel("Models/dungeon.obj"));
             scene.AttachLight(new Light(Color4.White, new Vector3(-6f, 2f, -3f)));
+            scene.AttachLight(new Light(Color4.White, new Vector3(-2f, 2f, -3f)));
             scene.CompileScene(content);
         }
 

@@ -164,21 +164,12 @@ namespace Minalear.Engine.Content.ModelLoader
                 if (tangent.LengthSquared > 0f)
                     tangent.Normalize();
 
-                Vector3 bitangent;
-                bitangent.X = f * (-deltaUV2.X * edge1.X + deltaUV1.X * edge2.X);
-                bitangent.Y = f * (-deltaUV2.X * edge1.Y + deltaUV1.X * edge2.Y);
-                bitangent.Z = f * (-deltaUV2.X * edge1.Z + deltaUV1.X * edge2.Z);
-
-                if (bitangent.LengthSquared > 0f)
-                    bitangent.Normalize();
-
                 //Vertex 1
                 buffer.AddRange(pos1.ToArray());
                 buffer.Add(uv1.X);
                 buffer.Add(1.0f - uv1.Y);
                 buffer.AddRange(n1.ToArray());
                 buffer.AddRange(tangent.ToArray());
-                buffer.AddRange(bitangent.ToArray());
 
                 //Vertex 2
                 buffer.AddRange(pos2.ToArray());
@@ -186,7 +177,6 @@ namespace Minalear.Engine.Content.ModelLoader
                 buffer.Add(1.0f - uv2.Y);
                 buffer.AddRange(n2.ToArray());
                 buffer.AddRange(tangent.ToArray());
-                buffer.AddRange(bitangent.ToArray());
 
                 //Vertex 3
                 buffer.AddRange(pos3.ToArray());
@@ -194,7 +184,6 @@ namespace Minalear.Engine.Content.ModelLoader
                 buffer.Add(1.0f - uv3.Y);
                 buffer.AddRange(n3.ToArray());
                 buffer.AddRange(tangent.ToArray());
-                buffer.AddRange(bitangent.ToArray());
             }
 
             return buffer.ToArray();

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace Minalear.Engine.Content
@@ -34,6 +35,14 @@ namespace Minalear.Engine.Content
         public void SetVector3(string name, Vector3 value)
         {
             GL.Uniform3(GetUniformLocation(name), value);
+        }
+        public void SetVector4(string name, Vector4 value)
+        {
+            GL.Uniform4(GetUniformLocation(name), value);
+        }
+        public void SetColor4(string name, Color4 value)
+        {
+            GL.Uniform4(GetUniformLocation(name), value);
         }
         public void SetMatrix4(string name, bool transpose, Matrix4 value)
         {

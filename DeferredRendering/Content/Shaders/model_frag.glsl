@@ -1,12 +1,16 @@
 ﻿#version 420
-in vec3 Position;
-in vec2 UV;
-in vec3 Normal;
-in vec3 Tangent;
-in vec3 Bitangent;
+in VS_OUT {
+	vec3 FragPos;
+	vec2 TexCoords;
+	vec3 TangentLightPos;
+	vec3 TangentViewPos;
+	vec3 TangentFragPos;
+} fs_in;
 
 out vec4 fragmentColor;
 
+uniform float ambientMod;
+uniform vec3 lightColor;
 uniform vec3 lightPosition;
 uniform vec3 cameraPosition;
 uniform float farPlane;
@@ -32,33 +36,34 @@ float ShadowCalculation(vec3 fragPos, vec3 normal, vec3 lightDir)
 
 void main()
 {
-	vec3 texColor = texture(diffuseMap, UV).rgb;
-	vec3 normalColor = texture(normalMap, UV).rgb;
-	vec3 specColor = texture(specularMap, UV).rgb;
+	vec3 texColor = texture(diffuseMap, fs_in.TexCoords).rgb;
+	vec3 normalColor = texture(normalMap, fs_in.TexCoords).rgb;
+	vec3 specColor = texture(specularMap, fs_in.TexCoords).rgb;
 
-	vec3 normal = normalize(TBN * normalize(normalColor * 2.0 - 1.0));
-
-	vec3 lightColor = vec3(1.0);
+	vec3 normal = texture(normalMap, fs_in.TexCoords).rgb;
+	normal = normalize(normal * 2.0 - 1.0);
 
 	//Ambient
-	vec3 ambient = 0.15 * lightColor;
+	vec3 ambient = vec3(ambientMod);
 
 	//Diffuse
-	vec3 lightDir = normalize(lightPosition - Position);
-	float diff = max(dot(normal, lightDir), 0.0);
+	vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+	float diff = max(dot(lightDir, normal), 0.0);
 	vec3 diffuse = diff * lightColor;
 
 	//Specular
-	vec3 viewDir = normalize(cameraPosition - Position);
-	float spec = 0.0;
+	vec3 viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
 	vec3 specular = spec * lightColor * specColor;
 
 	//Shadow
-	float shadow = ShadowCalculation(Position, normal, lightDir);
-	//vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * texColor;
-	vec3 lighting = normal;
+	float shadow = ShadowCalculation(fs_in.FragPos, normal, lightDir);
 
-	fragmentColor = vec4(normal, 1.0);
+	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * texColor;
+
+	if (ambient == 0.0)
+		fragmentColor = vec4(lighting, 1.0 - shadow);
+	else
+		fragmentColor = vec4(lighting, 1.0);
 }
