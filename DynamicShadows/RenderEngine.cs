@@ -18,6 +18,7 @@ namespace DynamicShadows
         private Scene scene;
 
         private Light testLight;
+        private Light staticLight;
         private float farPlane = 30f;
 
         const int VERTEX_LENGTH = 8;
@@ -34,25 +35,34 @@ namespace DynamicShadows
 
             testLight = new Light(new Color4(0.95f, 0.63f, 0.34f, 1f), Vector3.Zero);
             testLight.GenShadowMap(2048);
+
+            staticLight = new Light(new Color4(0.64f, 0.146f, 0.79f, 1f), new Vector3(6f, 2f, 3f));
+            staticLight.GenShadowMap(2048);
         }
         public void RenderScene(Camera camera, GameTime gameTime)
         {
             Matrix4 model;
             testLight.Position = scene.SpriteNodes[0].Position;
 
-            renderShadowMaps();
+            renderShadowMaps(testLight);
+            renderShadowMaps(staticLight);
             
             sceneShader.Use();
             sceneShader.SetMatrix4("view", false, camera.View);
             sceneShader.SetMatrix4("proj", false, camera.Projection);
 
             sceneShader.SetFloat("farPlane", farPlane);
-            sceneShader.SetVector3("lightColor", new Vector3(0.95f, 0.63f, 0.34f));
-            sceneShader.SetVector3("lightPosition", testLight.Position);
+            sceneShader.SetVector3("lightColors[0]", testLight.ColorRGB);
+            sceneShader.SetVector3("lightColors[1]", staticLight.ColorRGB);
+            sceneShader.SetVector3("lightPositions[0]", testLight.Position);
+            sceneShader.SetVector3("lightPositions[1]", staticLight.Position);
             sceneShader.SetVector3("cameraPosition", camera.Position);
 
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.TextureCubeMap, testLight.ShadowMap);
+
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.TextureCubeMap, staticLight.ShadowMap);
 
             GL.BindVertexArray(sceneVAO);
 
@@ -115,24 +125,24 @@ namespace DynamicShadows
             GL.BindVertexArray(0);
         }
 
-        private void renderShadowMaps()
+        private void renderShadowMaps(Light light)
         {
             Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 1.0f, farPlane);
 
             GL.BindVertexArray(sceneVAO);
-            GL.Viewport(0, 0, testLight.Resolution, testLight.Resolution);
+            GL.Viewport(0, 0, light.Resolution, light.Resolution);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, shadowFBO);
             
             shadowShader.Use();
             shadowShader.SetMatrix4("proj", false, proj);
             shadowShader.SetFloat("farPlane", farPlane);
-            shadowShader.SetVector3("lightPosition", testLight.Position);
+            shadowShader.SetVector3("lightPosition", light.Position);
 
-            Matrix4[] faceTransforms = getFaceTransforms(testLight.Position);
+            Matrix4[] faceTransforms = getFaceTransforms(light.Position);
             for (int i = 0; i < 6; i++)
             {
                 TextureTarget face = TextureTarget.TextureCubeMapPositiveX + i;
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, face, testLight.ShadowMap, 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, face, light.ShadowMap, 0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
                 shadowShader.SetMatrix4("view", false, faceTransforms[i]);
@@ -221,7 +231,9 @@ namespace DynamicShadows
 
             sceneShader.SetInt("diffuseMap", 0);
             sceneShader.SetInt("specularMap", 1);
-            sceneShader.SetInt("shadowMap", 2);
+
+            sceneShader.SetInt("shadowMaps[0]", 2);
+            sceneShader.SetInt("shadowMaps[1]", 3);
 
             spriteShader = content.LoadShaderProgram("Shaders/sprite_vert.glsl", "Shaders/sprite_frag.glsl");
 

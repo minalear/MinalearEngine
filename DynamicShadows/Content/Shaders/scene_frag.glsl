@@ -7,16 +7,17 @@ in VS_OUT {
 
 out vec4 fragmentColor;
 
-uniform float farPlane;
-uniform vec3 lightPosition;
-uniform vec3 lightColor;
 uniform vec3 cameraPosition;
+uniform float farPlane;
+
+uniform vec3 lightPositions[2];
+uniform vec3 lightColors[2];
 
 uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
-uniform samplerCube shadowMap;
+uniform samplerCube shadowMaps[2];
 
-float ShadowCalculation(vec3 normal, vec3 lightDir)
+float ShadowCalculation(samplerCube shadowMap, vec3 lightPosition, vec3 normal, vec3 lightDir)
 {
 	vec3 fragToLight = fs_in.FragPos - lightPosition;
 	float closestDepth = texture(shadowMap, fragToLight).r;
@@ -29,22 +30,17 @@ float ShadowCalculation(vec3 normal, vec3 lightDir)
 	return shadow;
 }
 
-void main()
+vec3 LightCalculation(samplerCube shadowMap, vec3 normal, vec3 lightPosition, vec3 lightColor, vec3 diffuseSample, float specSample)
 {
-	//Texture Samples
-	vec3 diffuseColor = texture(diffuseMap, fs_in.TexCoords).rgb;
-	vec3 specularColor = texture(specularMap, fs_in.TexCoords).rgb;
-
 	//Light variables
 	float lightConstant = 1.0;
 	float lightLinear = 0.6;
 	float lightQuadratic = 0.04;
-	vec3 normal = normalize(fs_in.Normal);
 	vec3 lightDir = normalize(lightPosition - fs_in.FragPos);
 	vec3 viewDir = normalize(cameraPosition - fs_in.FragPos);
 
 	//Ambient
-	vec3 ambient = diffuseColor * 0.1;
+	vec3 ambient = diffuseSample * 0.1;
 
 	//Diffuse
 	float diff = max(dot(lightDir, normal), 0.0);
@@ -53,15 +49,30 @@ void main()
 	//Specular
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-	vec3 specular = spec * specularColor;
+	vec3 specular = vec3(spec * specSample);
 
 	//Attenuation
 	float dist = length(lightPosition - fs_in.FragPos);
 	float atten = 1.0 / (lightConstant + lightLinear * dist * lightQuadratic * pow(dist, 2));
 
 	//Shadow
-	float shadow = ShadowCalculation(normal, lightDir);
+	float shadow = ShadowCalculation(shadowMap, lightPosition, normal, lightDir);
 
-	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * atten * diffuseColor;
-	fragmentColor = vec4(lighting, 1.0);
+	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * atten * diffuseSample;
+	return lighting;
+}
+
+void main()
+{
+	//Texture Samples
+	vec3 diffuseColor = texture(diffuseMap, fs_in.TexCoords).rgb;
+	vec3 specularColor = texture(specularMap, fs_in.TexCoords).rgb;
+
+	vec3 normal = normalize(fs_in.Normal);
+
+	//Lights
+	vec3 lightOne = LightCalculation(shadowMaps[0], normal, lightPositions[0], lightColors[0], diffuseColor, specularColor.r);
+	vec3 lightTwo = LightCalculation(shadowMaps[1], normal, lightPositions[1], lightColors[1], diffuseColor, specularColor.r);
+	
+	fragmentColor = vec4(lightOne + lightTwo, 1.0);
 }
