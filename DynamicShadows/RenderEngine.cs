@@ -31,6 +31,12 @@ namespace DynamicShadows
             initShaders(content);
             initFBO();
             initLights();
+
+            //Pre-render all shadow maps
+            for (int i = 0; i < scene.Lights.Count; i++)
+            {
+                renderShadowMaps(scene.Lights[i]);
+            }
         }
         public void RenderScene(Camera camera, GameTime gameTime)
         {
@@ -39,9 +45,10 @@ namespace DynamicShadows
 
             for (int i = 0; i < scene.Lights.Count; i++)
             {
-                renderShadowMaps(scene.Lights[i]);
+                if (scene.Lights[i].CasterType == ShadowTypes.Dynamic)
+                    renderShadowMaps(scene.Lights[i]);
             }
-            
+
             sceneShader.Use();
             sceneShader.SetMatrix4("view", false, camera.View);
             sceneShader.SetMatrix4("proj", false, camera.Projection);
@@ -223,6 +230,8 @@ namespace DynamicShadows
             sceneShader.SetMatrix4("model", false, Matrix4.Identity);
             sceneShader.SetMatrix4("view", false, Matrix4.Identity);
             sceneShader.SetMatrix4("proj", false, Matrix4.Identity);
+
+            sceneShader.SetInt("NumLights", scene.Lights.Count);
 
             sceneShader.SetInt("diffuseMap", 0);
             sceneShader.SetInt("specularMap", 1);

@@ -10,14 +10,15 @@ out vec4 fragmentColor;
 uniform vec3 cameraPosition;
 uniform float farPlane;
 
-const int NUM_LIGHTS = 3;
+const int MAX_LIGHTS = 8;
 
-uniform vec3 lightPositions[NUM_LIGHTS];
-uniform vec3 lightColors[NUM_LIGHTS];
+uniform int NumLights;
+uniform vec3 lightPositions[MAX_LIGHTS];
+uniform vec3 lightColors[MAX_LIGHTS];
 
 uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
-uniform samplerCube shadowMaps[NUM_LIGHTS];
+uniform samplerCube shadowMaps[MAX_LIGHTS];
 
 float ShadowCalculation(samplerCube shadowMap, vec3 lightPosition, vec3 normal, vec3 lightDir)
 {
@@ -74,7 +75,7 @@ void main()
 
 	//Lights
 	vec3 lighting = vec3(0);
-	for (int i = 0; i < NUM_LIGHTS; i++)
+	for (int i = 0; i < NumLights && i < MAX_LIGHTS; i++)
 		lighting += LightCalculation(shadowMaps[i], normal, lightPositions[i], lightColors[i], diffuseColor, specularColor.r);
 	
 	fragmentColor = vec4(lighting, 1.0);

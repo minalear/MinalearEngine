@@ -15,6 +15,7 @@ namespace DynamicShadows
             : base(position)
         {
             this.color = color;
+            CasterType = ShadowTypes.Static;
         }
 
         public void GenShadowMap(int resolution)
@@ -58,6 +59,7 @@ namespace DynamicShadows
         {
             get { return shadowResolution; }
         }
+        public ShadowTypes CasterType { get; set; }
     }
 
     public enum LightTypes

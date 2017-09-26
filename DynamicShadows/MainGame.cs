@@ -59,9 +59,10 @@ namespace DynamicShadows
 
             scene.AttachSpriteNode(content.LoadTexture2D("Textures/explorer.png"), new Vector3(0f, 0.6f, 7f));
 
-            scene.AttachLight(new Color4(0.95f, 0.63f, 0.34f, 1f), Vector3.Zero);
+            scene.AttachLight(new Color4(0.95f, 0.63f, 0.34f, 1f), Vector3.Zero).CasterType = ShadowTypes.Dynamic;
             scene.AttachLight(new Color4(0.24f, 0.06f, 0.49f, 1f), new Vector3(6f, 2f, 3f));
             scene.AttachLight(new Color4(0.1f, 0.1f, 0.1f, 1f), new Vector3(1f, 2f, 3f));
+            scene.AttachLight(new Color4(0.14f, 0.37f, 0.21f, 1f), new Vector3(-3f, 3f, 2f));
 
             renderEngine.CompileScene(content, scene);
         }
