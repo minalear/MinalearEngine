@@ -149,7 +149,7 @@ namespace Minalear.Engine.Content.ModelLoader
                 Vector3 n2 = normalList[face.Vertices[1].NormalIndex];
                 Vector3 n3 = normalList[face.Vertices[2].NormalIndex];
 
-                Vector3 edge1 = pos2 - pos1;
+                /*Vector3 edge1 = pos2 - pos1;
                 Vector3 edge2 = pos3 - pos1;
                 Vector2 deltaUV1 = uv2 - uv1;
                 Vector2 deltaUV2 = uv3 - uv1;
@@ -162,28 +162,28 @@ namespace Minalear.Engine.Content.ModelLoader
                 tangent.Z = f * (deltaUV2.Y * edge1.Z - deltaUV1.Y * edge2.Z);
 
                 if (tangent.LengthSquared > 0f)
-                    tangent.Normalize();
+                    tangent.Normalize();*/
 
                 //Vertex 1
                 buffer.AddRange(pos1.ToArray());
                 buffer.Add(uv1.X);
                 buffer.Add(1.0f - uv1.Y);
                 buffer.AddRange(n1.ToArray());
-                buffer.AddRange(tangent.ToArray());
+                //buffer.AddRange(tangent.ToArray());
 
                 //Vertex 2
                 buffer.AddRange(pos2.ToArray());
                 buffer.Add(uv2.X);
                 buffer.Add(1.0f - uv2.Y);
                 buffer.AddRange(n2.ToArray());
-                buffer.AddRange(tangent.ToArray());
+                //buffer.AddRange(tangent.ToArray());
 
                 //Vertex 3
                 buffer.AddRange(pos3.ToArray());
                 buffer.Add(uv3.X);
                 buffer.Add(1.0f - uv3.Y);
                 buffer.AddRange(n3.ToArray());
-                buffer.AddRange(tangent.ToArray());
+                //buffer.AddRange(tangent.ToArray());
             }
 
             return buffer.ToArray();

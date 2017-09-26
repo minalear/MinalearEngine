@@ -13,12 +13,14 @@ namespace Minalear.Engine
 
         public Game(string title, int width, int height)
         {
-            window = new GameWindow(width, height, new GraphicsMode(32, 24, 8, 4), title, GameWindowFlags.Default);
+            window = new GameWindow(width, height, new GraphicsMode(32, 24, 1, 4), title, GameWindowFlags.Default);
             window.RenderFrame += (sender, e) => renderFrame(e);
             window.UpdateFrame += (sender, e) => updateFrame(e);
             window.Resize += (sender, e) => Resize();
 
             gameTime = new GameTime();
+
+            window.VSync = VSyncMode.Off;
 
             Initialize();
             LoadContent();
@@ -33,7 +35,7 @@ namespace Minalear.Engine
 
         public virtual void Run()
         {
-            window.Run();
+            window.Run(60.0, 0.0);
         }
         public virtual void Stop()
         {

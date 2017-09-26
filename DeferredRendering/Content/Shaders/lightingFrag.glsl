@@ -54,6 +54,6 @@ void main()
 	//Shadow
 	//float shadow = ShadowCalculation(position, normal, lightDir);
 
-	//vec3 lighting = (ambient + diffuse + specular) * albedo;
-	fragmentColor = vec4(albedo, 1.0);
+	vec3 lighting = (ambient + diffuse + specular) * albedo;
+	fragmentColor = vec4(vec3(specValue), 1.0);
 }

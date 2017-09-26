@@ -33,7 +33,7 @@ namespace DeferredRendering
             GL.Enable(EnableCap.DepthTest);
 
             //GL.Enable(EnableCap.Blend);
-            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
@@ -63,9 +63,7 @@ namespace DeferredRendering
 
         public override void Draw(GameTime gameTime)
         {
-            //scene.Draw(gameTime, camera);
             renderEngine.RenderScene(gameTime, camera);
-
             //quadRenderer.DrawTexture(renderEngine.GAlbedoSpec, Vector2.Zero, new Vector2(1280, 720));
 
             Window.SwapBuffers();

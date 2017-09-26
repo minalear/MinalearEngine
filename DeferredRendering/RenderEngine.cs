@@ -60,7 +60,7 @@ namespace DeferredRendering
                 for (int m = 0; m < scene.RenderNodes[i].Model.Meshes.Length; m++)
                 {
                     Mesh mesh = scene.RenderNodes[i].Model.Meshes[m];
-                    vertexCount = mesh.VertexData.Length / 11;
+                    vertexCount = mesh.VertexData.Length / 8;
 
                     GL.ActiveTexture(TextureUnit.Texture0);
                     mesh.Material.DiffuseMap.Bind();
@@ -120,10 +120,10 @@ namespace DeferredRendering
             GL.EnableVertexAttribArray(1); //UV
             GL.EnableVertexAttribArray(2); //Normal
 
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 11 * sizeof(float), 0 * sizeof(float)); //Pos (XYZ)
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 11 * sizeof(float), 3 * sizeof(float)); //UV (XY)
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 11 * sizeof(float), 5 * sizeof(float)); //Normal (XYZ)
-            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 11 * sizeof(float), 8 * sizeof(float)); //Tangent (XYZ)
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0 * sizeof(float)); //Pos (XYZ)
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float)); //UV (XY)
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float)); //Normal (XYZ)
+            //GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 11 * sizeof(float), 8 * sizeof(float)); //Tangent (XYZ)
 
             //Quad VAO and VBO
             float[] quadBuffer = new float[] {
