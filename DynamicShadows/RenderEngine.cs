@@ -20,6 +20,7 @@ namespace DynamicShadows
         private float farPlane = 30f;
 
         const int VERTEX_LENGTH = 8;
+        const int SHADOW_MAP_RESOLUTION = 1024;
 
         public RenderEngine() { }
 
@@ -129,7 +130,7 @@ namespace DynamicShadows
 
         private void renderShadowMaps(Light light)
         {
-            Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 1.0f, farPlane);
+            Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 0.1f, farPlane);
 
             GL.BindVertexArray(sceneVAO);
             GL.Viewport(0, 0, light.Resolution, light.Resolution);
@@ -273,7 +274,7 @@ namespace DynamicShadows
         private void initLights()
         {
             for (int i = 0; i < scene.Lights.Count; i++)
-                scene.Lights[i].GenShadowMap(2048);
+                scene.Lights[i].GenShadowMap(SHADOW_MAP_RESOLUTION);
         }
 
         private float[] fetchSceneVertexData(Scene scene)

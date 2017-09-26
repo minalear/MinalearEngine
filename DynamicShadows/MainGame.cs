@@ -32,6 +32,8 @@ namespace DynamicShadows
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
+            GL.Enable(EnableCap.TextureCubeMapSeamless);
+
             renderEngine = new RenderEngine();
 
             Window.KeyUp += (sender, e) =>
