@@ -17,8 +17,6 @@ namespace DynamicShadows
         private ShaderProgram sceneShader, spriteShader, shadowShader;
         private Scene scene;
 
-        private Light testLight;
-        private Light staticLight;
         private float farPlane = 30f;
 
         const int VERTEX_LENGTH = 8;
@@ -32,37 +30,34 @@ namespace DynamicShadows
             initVertexData(scene);
             initShaders(content);
             initFBO();
-
-            testLight = new Light(new Color4(0.95f, 0.63f, 0.34f, 1f), Vector3.Zero);
-            testLight.GenShadowMap(2048);
-
-            staticLight = new Light(new Color4(0.64f, 0.146f, 0.79f, 1f), new Vector3(6f, 2f, 3f));
-            staticLight.GenShadowMap(2048);
+            initLights();
         }
         public void RenderScene(Camera camera, GameTime gameTime)
         {
             Matrix4 model;
-            testLight.Position = scene.SpriteNodes[0].Position;
+            scene.Lights[0].Position = scene.SpriteNodes[0].Position; //Debug
 
-            renderShadowMaps(testLight);
-            renderShadowMaps(staticLight);
+            for (int i = 0; i < scene.Lights.Count; i++)
+            {
+                renderShadowMaps(scene.Lights[i]);
+            }
             
             sceneShader.Use();
             sceneShader.SetMatrix4("view", false, camera.View);
             sceneShader.SetMatrix4("proj", false, camera.Projection);
 
             sceneShader.SetFloat("farPlane", farPlane);
-            sceneShader.SetVector3("lightColors[0]", testLight.ColorRGB);
-            sceneShader.SetVector3("lightColors[1]", staticLight.ColorRGB);
-            sceneShader.SetVector3("lightPositions[0]", testLight.Position);
-            sceneShader.SetVector3("lightPositions[1]", staticLight.Position);
             sceneShader.SetVector3("cameraPosition", camera.Position);
 
-            GL.ActiveTexture(TextureUnit.Texture2);
-            GL.BindTexture(TextureTarget.TextureCubeMap, testLight.ShadowMap);
+            for (int i = 0; i < scene.Lights.Count; i++)
+            {
+                Light light = scene.Lights[i];
+                sceneShader.SetVector3(string.Format("lightColors[{0}]", i), light.ColorRGB);
+                sceneShader.SetVector3(string.Format("lightPositions[{0}]", i), light.Position);
 
-            GL.ActiveTexture(TextureUnit.Texture3);
-            GL.BindTexture(TextureTarget.TextureCubeMap, staticLight.ShadowMap);
+                GL.ActiveTexture(TextureUnit.Texture2 + i);
+                GL.BindTexture(TextureTarget.TextureCubeMap, light.ShadowMap);
+            }
 
             GL.BindVertexArray(sceneVAO);
 
@@ -232,8 +227,11 @@ namespace DynamicShadows
             sceneShader.SetInt("diffuseMap", 0);
             sceneShader.SetInt("specularMap", 1);
 
-            sceneShader.SetInt("shadowMaps[0]", 2);
-            sceneShader.SetInt("shadowMaps[1]", 3);
+            int startIndex = 2;
+            for (int i = 0; i < scene.Lights.Count; i++)
+            {
+                sceneShader.SetInt(string.Format("shadowMaps[{0}]", i), i + startIndex);
+            }
 
             spriteShader = content.LoadShaderProgram("Shaders/sprite_vert.glsl", "Shaders/sprite_frag.glsl");
 
@@ -262,6 +260,11 @@ namespace DynamicShadows
             GL.DrawBuffer(DrawBufferMode.None);
             GL.ReadBuffer(ReadBufferMode.None);
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+        private void initLights()
+        {
+            for (int i = 0; i < scene.Lights.Count; i++)
+                scene.Lights[i].GenShadowMap(2048);
         }
 
         private float[] fetchSceneVertexData(Scene scene)

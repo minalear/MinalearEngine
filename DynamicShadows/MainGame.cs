@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -16,9 +17,7 @@ namespace DynamicShadows
         private Camera camera;
 
         private bool toggle = false;
-
-        private float fpsTimer;
-        private int frameCounter;
+        private Stopwatch timer = new Stopwatch();
 
         public MainGame() : base("Dynamic Shadows Prototype", 1280, 720) { }
 
@@ -60,25 +59,17 @@ namespace DynamicShadows
 
             scene.AttachSpriteNode(content.LoadTexture2D("Textures/explorer.png"), new Vector3(0f, 0.6f, 7f));
 
+            scene.AttachLight(new Color4(0.95f, 0.63f, 0.34f, 1f), Vector3.Zero);
+            scene.AttachLight(new Color4(0.24f, 0.06f, 0.49f, 1f), new Vector3(6f, 2f, 3f));
+            scene.AttachLight(new Color4(0.1f, 0.1f, 0.1f, 1f), new Vector3(1f, 2f, 3f));
+
             renderEngine.CompileScene(content, scene);
         }
 
         public override void Draw(GameTime gameTime)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             renderEngine.RenderScene(camera, gameTime);
-
-            //FPS Counter
-            frameCounter++;
-            fpsTimer += gameTime.Delta;
-            if (fpsTimer >= 10.0f)
-            {
-                Console.WriteLine("{0} fps.", frameCounter / 10);
-                frameCounter = 0;
-                fpsTimer = 0f;
-            }
-
             Window.SwapBuffers();
         }
 

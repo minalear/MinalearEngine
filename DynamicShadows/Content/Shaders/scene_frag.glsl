@@ -10,12 +10,14 @@ out vec4 fragmentColor;
 uniform vec3 cameraPosition;
 uniform float farPlane;
 
-uniform vec3 lightPositions[2];
-uniform vec3 lightColors[2];
+const int NUM_LIGHTS = 3;
+
+uniform vec3 lightPositions[NUM_LIGHTS];
+uniform vec3 lightColors[NUM_LIGHTS];
 
 uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
-uniform samplerCube shadowMaps[2];
+uniform samplerCube shadowMaps[NUM_LIGHTS];
 
 float ShadowCalculation(samplerCube shadowMap, vec3 lightPosition, vec3 normal, vec3 lightDir)
 {
@@ -71,8 +73,9 @@ void main()
 	vec3 normal = normalize(fs_in.Normal);
 
 	//Lights
-	vec3 lightOne = LightCalculation(shadowMaps[0], normal, lightPositions[0], lightColors[0], diffuseColor, specularColor.r);
-	vec3 lightTwo = LightCalculation(shadowMaps[1], normal, lightPositions[1], lightColors[1], diffuseColor, specularColor.r);
+	vec3 lighting = vec3(0);
+	for (int i = 0; i < NUM_LIGHTS; i++)
+		lighting += LightCalculation(shadowMaps[i], normal, lightPositions[i], lightColors[i], diffuseColor, specularColor.r);
 	
-	fragmentColor = vec4(lightOne + lightTwo, 1.0);
+	fragmentColor = vec4(lighting, 1.0);
 }
