@@ -16,6 +16,7 @@ namespace DynamicShadows
         {
             this.color = color;
             CasterType = ShadowTypes.Static;
+            Type = LightTypes.Point;
         }
 
         public void GenShadowMap(int resolution)
@@ -25,19 +26,33 @@ namespace DynamicShadows
             shadowResolution = resolution;
 
             shadowMap = GL.GenTexture();
-            GL.BindTexture(TextureTarget.TextureCubeMap, shadowMap);
 
-            for (int face = 0; face < 6; face++)
+            if (Type == LightTypes.Point)
             {
-                GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX + face, 0, PixelInternalFormat.DepthComponent,
-                    resolution, resolution, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-            }
+                GL.BindTexture(TextureTarget.TextureCubeMap, shadowMap);
 
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.ClampToEdge);
+                for (int face = 0; face < 6; face++)
+                {
+                    GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX + face, 0, PixelInternalFormat.DepthComponent,
+                        resolution, resolution, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+                }
+
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.ClampToEdge);
+            }
+            else if (Type == LightTypes.Directional)
+            {
+                GL.BindTexture(TextureTarget.Texture2D, shadowMap);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, resolution, resolution, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            }
 
             GL.BindTexture(TextureTarget.TextureCubeMap, 0);
         }
@@ -60,6 +75,7 @@ namespace DynamicShadows
             get { return shadowResolution; }
         }
         public ShadowTypes CasterType { get; set; }
+        public LightTypes Type { get; set; }
     }
 
     public enum LightTypes

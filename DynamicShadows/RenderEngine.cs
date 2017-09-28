@@ -14,10 +14,11 @@ namespace DynamicShadows
         private int spriteVAO;
         private int shadowFBO;
 
-        private ShaderProgram sceneShader, spriteShader, shadowShader;
+        private ShaderProgram sceneShader, spriteShader, shadowShader, dirShader;
         private Scene scene;
 
         private float farPlane = 30f;
+        private Light dirLight;
 
         const int VERTEX_LENGTH = 8;
         const int SHADOW_MAP_RESOLUTION = 1024;
@@ -38,6 +39,12 @@ namespace DynamicShadows
             {
                 renderShadowMaps(scene.Lights[i]);
             }
+
+            dirLight = new Light(Color4.White, Vector3.Zero);
+            dirLight.Type = LightTypes.Directional;
+            dirLight.GenShadowMap(4096);
+
+            renderDirectionalShadowMap(dirLight);
         }
         public void RenderScene(Camera camera, GameTime gameTime)
         {
@@ -57,13 +64,19 @@ namespace DynamicShadows
             sceneShader.SetFloat("farPlane", farPlane);
             sceneShader.SetVector3("cameraPosition", camera.Position);
 
+            sceneShader.SetVector3("directLight.direction", new Vector3(-1f, -1f, 1f));
+            sceneShader.SetVector3("directLight.color", Vector3.One);
+
+            GL.ActiveTexture(TextureUnit.Texture2);
+            GL.BindTexture(TextureTarget.Texture2D, dirLight.ShadowMap);
+
             for (int i = 0; i < scene.Lights.Count; i++)
             {
                 Light light = scene.Lights[i];
-                sceneShader.SetVector3(string.Format("lightColors[{0}]", i), light.ColorRGB);
-                sceneShader.SetVector3(string.Format("lightPositions[{0}]", i), light.Position);
+                sceneShader.SetVector3(string.Format("lights[{0}].position", i), light.Position);
+                sceneShader.SetVector3(string.Format("lights[{0}].color", i), light.ColorRGB);
 
-                GL.ActiveTexture(TextureUnit.Texture2 + i);
+                GL.ActiveTexture(TextureUnit.Texture3 + i);
                 GL.BindTexture(TextureTarget.TextureCubeMap, light.ShadowMap);
             }
 
@@ -119,6 +132,7 @@ namespace DynamicShadows
                 //Bind sprite texture
                 GL.ActiveTexture(TextureUnit.Texture0);
                 node.Sprite.Bind();
+                //GL.BindTexture(TextureTarget.Texture2D, dirLight.ShadowMap); //DEBUG
 
                 //Draw vertices
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
@@ -128,6 +142,50 @@ namespace DynamicShadows
             GL.BindVertexArray(0);
         }
 
+        private void renderDirectionalShadowMap(Light light)
+        {
+            Matrix4 proj = Matrix4.CreateOrthographic(20f, 20f, 1f, 25f);
+
+            GL.BindVertexArray(sceneVAO);
+            GL.Viewport(0, 0, light.Resolution, light.Resolution);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, shadowFBO);
+
+            Vector3 sunPos = new Vector3(8f, 10f, -4f);
+            Matrix4 view = Matrix4.LookAt(sunPos, sunPos + new Vector3(-1f, -1f, 1f), new Vector3(0f, 1f, 0f));
+
+            Matrix4 LightSpaceMatrix = view * proj;
+            sceneShader.Use();
+            sceneShader.SetMatrix4("lightSpaceMatrix", false, LightSpaceMatrix);
+
+            dirShader.Use();
+            dirShader.SetMatrix4("proj", false, proj);
+
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, light.ShadowMap, 0);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            dirShader.SetMatrix4("view", false, view);
+
+            int index = 0, vertexCount;
+            for (int k = 0; k < scene.RenderNodes.Count; k++)
+            {
+                RenderNode node = scene.RenderNodes[k];
+                Matrix4 model = node.GetTransform();
+                dirShader.SetMatrix4("model", false, model);
+
+                for (int j = 0; j < node.Model.Meshes.Length; j++)
+                {
+                    Mesh mesh = node.Model.Meshes[j];
+                    vertexCount = mesh.VertexData.Length / VERTEX_LENGTH;
+
+                    GL.DrawArrays(PrimitiveType.Triangles, index, vertexCount);
+                    index += vertexCount;
+                }
+            }
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.Viewport(0, 0, 1280, 720);
+            GL.BindVertexArray(0);
+        }
         private void renderShadowMaps(Light light)
         {
             Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver2, 1f, 0.1f, farPlane);
@@ -236,11 +294,12 @@ namespace DynamicShadows
 
             sceneShader.SetInt("diffuseMap", 0);
             sceneShader.SetInt("specularMap", 1);
+            sceneShader.SetInt("directLight.shadowMap", 2);
 
-            int startIndex = 2;
+            int startIndex = 3;
             for (int i = 0; i < scene.Lights.Count; i++)
             {
-                sceneShader.SetInt(string.Format("shadowMaps[{0}]", i), i + startIndex);
+                sceneShader.SetInt(string.Format("lights[{0}].shadowMap", i), i + startIndex);
             }
 
             spriteShader = content.LoadShaderProgram("Shaders/sprite_vert.glsl", "Shaders/sprite_frag.glsl");
@@ -262,6 +321,13 @@ namespace DynamicShadows
 
             shadowShader.SetVector3("lightPosition", Vector3.Zero);
             shadowShader.SetFloat("farPlane", farPlane);
+
+            dirShader = content.LoadShaderProgram("Shaders/shadow_vert.glsl", "Shaders/dir_shadow_frag.glsl");
+
+            dirShader.Use();
+            dirShader.SetMatrix4("model", false, Matrix4.Identity);
+            dirShader.SetMatrix4("view", false, Matrix4.Identity);
+            dirShader.SetMatrix4("proj", false, Matrix4.Identity);
         }
         private void initFBO()
         {

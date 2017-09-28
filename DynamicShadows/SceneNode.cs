@@ -18,11 +18,11 @@ namespace DynamicShadows
         public virtual Matrix4 GetTransform()
         {
             return
-                Matrix4.CreateTranslation(Position) *
+                Matrix4.CreateScale(Scale) * 
                 Matrix4.CreateRotationX(Rotation.X) *
                 Matrix4.CreateRotationY(Rotation.Y) *
                 Matrix4.CreateRotationZ(Rotation.Z) *
-                Matrix4.CreateScale(Scale);
+                Matrix4.CreateTranslation(Position);
         }
     }
 }
