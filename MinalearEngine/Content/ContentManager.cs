@@ -13,6 +13,12 @@ namespace Minalear.Engine.Content
         private string contentDirectory = "/";
         public string ContentDirectory { get { return contentDirectory; } set { contentDirectory = value; } }
 
+        public ContentManager() { }
+        public ContentManager(string defaultDirectory)
+        {
+            contentDirectory = defaultDirectory;
+        }
+
         public Texture2D LoadTexture2D(string path)
         {
             path = checkValidPath(path);

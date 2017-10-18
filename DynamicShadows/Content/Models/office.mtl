@@ -1,5 +1,5 @@
 # Blender MTL File: 'office.blend'
-# Material Count: 2
+# Material Count: 4
 
 newmtl None
 Ns 0
@@ -22,3 +22,36 @@ illum 2
 map_Kd Textures/checker.png
 map_Bump Textures/checker.png
 map_Ks Textures/checker.png
+
+newmtl None_cushion.png
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+map_Kd Textures/cushion.png
+map_Bump Textures/cushion.png
+map_Ks Textures/cushion.png
+
+newmtl None_office_plant.png
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+map_Kd Textures/office_plant.png
+map_Bump Textures/office_plant.png
+map_Ks Textures/office_plant.png
+
+newmtl None_desk.png
+Ns 0
+Ka 0.000000 0.000000 0.000000
+Kd 0.8 0.8 0.8
+Ks 0.8 0.8 0.8
+d 1
+illum 2
+map_Kd Textures/desk.png
+map_Bump Textures/desk.png
+map_Ks Textures/desk.png

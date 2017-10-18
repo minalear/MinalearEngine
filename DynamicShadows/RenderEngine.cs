@@ -49,7 +49,7 @@ namespace DynamicShadows
         public void RenderScene(Camera camera, GameTime gameTime)
         {
             Matrix4 model;
-            scene.Lights[0].Position = scene.SpriteNodes[0].Position; //Debug
+            scene.Lights[0].Position = scene.SpriteNodes[0].Position + new Vector3(0.5f, 0.5f, 0f); //Debug
 
             for (int i = 0; i < scene.Lights.Count; i++)
             {
